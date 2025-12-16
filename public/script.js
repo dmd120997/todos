@@ -3,8 +3,11 @@ const API_URL = "http://localhost:8080/todos";
 const todoForm = document.getElementById("todo-form");
 const todoInput = document.getElementById("todo-input");
 const todoList = document.getElementById("todo-list");
+
 let allTodos = [];
-let currentFilter = "all";
+let currentFilter = localStorage.getItem("todoFilter") || "all";
+
+const filterButtons = document.querySelectorAll(".filters button");
 
 async function loadTodos() {
   const res = await fetch(API_URL);
@@ -24,14 +27,20 @@ function getFilteredTodos() {
   return allTodos;
 }
 
+function updateFilterButtons() {
+  filterButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.filter === currentFilter);
+  });
+}
+
 function renderTodos() {
   todoList.innerHTML = "";
 
   const todosToShow = getFilteredTodos();
   todosToShow.forEach(addTodoToDOM);
+
+  updateFilterButtons();
 }
-
-
 
 function addTodoToDOM(todo) {
   const li = document.createElement("li");
@@ -55,11 +64,13 @@ function addTodoToDOM(todo) {
   li.appendChild(checkbox);
   li.appendChild(span);
   li.appendChild(deleteBtn);
+
   todoList.appendChild(li);
 }
 
 todoForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+
   const title = todoInput.value.trim();
   if (!title) return;
 
@@ -68,20 +79,24 @@ todoForm.addEventListener("submit", async (e) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title }),
   });
+
   const todo = await res.json();
-  addTodoToDOM(todo);
+  allTodos.push(todo);
+  renderTodos();
+
   todoInput.value = "";
 });
 
 async function toggleTodo(id, completed) {
-  await fetch(`${API_URL}/${id}`, {
+  const res = await fetch(`${API_URL}/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ completed }),
   });
+
   const updatedTodo = await res.json();
 
-  const index = allTodos.findIndex(t => t.id === updatedTodo.id);
+  const index = allTodos.findIndex((t) => t.id === updatedTodo.id);
   allTodos[index] = updatedTodo;
 
   renderTodos();
@@ -90,18 +105,16 @@ async function toggleTodo(id, completed) {
 async function deleteTodo(id) {
   await fetch(`${API_URL}/${id}`, { method: "DELETE" });
 
-  allTodos = allTodos.filter(t => t.id !== id);
+  allTodos = allTodos.filter((t) => t.id !== id);
   renderTodos();
 }
 
-const filterButtons = document.querySelectorAll(".filters button");
-
-filterButtons.forEach(button => {
+filterButtons.forEach((button) => {
   button.addEventListener("click", () => {
     currentFilter = button.dataset.filter;
+    localStorage.setItem("todoFilter", currentFilter);
     renderTodos();
   });
 });
-
 
 loadTodos();
