@@ -23,9 +23,27 @@ li {
   display: flex;
   align-items: center;
   margin: 10px 0;
+  gap: 10px;
 }
 
 .completed {
   text-decoration: line-through;
   color: gray;
+}
+
+.filters {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.filters button {
+  padding: 5px 10px;
+  border: 1px solid #ddd;
+  background: #f0f0f0;
+  cursor: pointer;
+}
+
+.filters button:hover {
+  background: #e0e0e0;
 }
