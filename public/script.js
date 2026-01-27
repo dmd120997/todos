@@ -57,6 +57,42 @@ function addTodoToDOM(todo) {
   span.textContent = todo.title;
   if (todo.completed) span.classList.add("completed");
 
+  span.addEventListener("dblclick", () => {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = todo.title;
+    input.className = "edit-input";
+
+    li.replaceChild(input, span);
+    input.focus();
+
+    const save = async () => {
+      const newTitle = input.value.trim();
+      if (!newTitle) {
+        li.replaceChild(span, input);
+        return;
+      }
+
+      const res = await fetch(`${API_URL}/${todo.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTitle }),
+      });
+
+      const updatedTodo = await res.json();
+      const index = allTodos.findIndex((t) => t.id === updatedTodo.id);
+      allTodos[index] = updatedTodo;
+
+      renderTodos();
+    };
+
+    input.addEventListener("blur", save);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") save();
+      if (e.key === "Escape") li.replaceChild(span, input);
+    });
+  });
+
   const deleteBtn = document.createElement("button");
   deleteBtn.textContent = "❌";
   deleteBtn.addEventListener("click", () => deleteTodo(todo.id));
