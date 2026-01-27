@@ -9,11 +9,17 @@
 
 <body>
     <div class="container">
-        <h1>Todo App</h1>
+
+        <div class="header">
+            <h1>Todo App</h1>
+            <button id="theme-toggle">🌙</button>
+        </div>
+
         <form id="todo-form">
             <input type="text" id="todo-input" placeholder="New todo" required>
             <button type="submit">ADD</button>
         </form>
+
         <div class="filters">
             <button data-filter="all">All</button>
             <button data-filter="active">Active</button>
