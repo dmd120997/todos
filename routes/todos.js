@@ -19,7 +19,7 @@ router.post("/", async (req, res) => {
   try {
     const result = await pool.query(
       "INSERT INTO todos (title) VALUES ($1) RETURNING *",
-      [title]
+      [title],
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -29,22 +29,21 @@ router.post("/", async (req, res) => {
 });
 
 router.patch("/:id", async (req, res) => {
-  const { completed } = req.body;
+  const { title, completed } = req.body;
   const { id } = req.params;
 
-  try {
-    const result = await pool.query(
-      "UPDATE todos SET completed = $1 WHERE id = $2 RETURNING *",
-      [completed, id]
-    );
-    if (result.rows.length === 0)
-      return res.status(404).json({ message: "Not found" });
+  const result = await pool.query(
+    `UPDATE todos
+     SET title = COALESCE($1, title),
+         completed = COALESCE($2, completed)
+     WHERE id = $3
+     RETURNING *`,
+    [title, completed, id],
+  );
 
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "DB error" });
-  }
+  if (result.rows.length === 0)
+    return res.status(404).json({ message: "Not found" });
+  res.json(result.rows[0]);
 });
 
 router.delete("/:id", async (req, res) => {
